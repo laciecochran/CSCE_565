@@ -160,15 +160,15 @@ display( void )
 	0.0, 0.0, scale, 0.0,
 	0.0, 0.0, 0.0, 1.0);
      mat4  mv_rx = mat4(1.0, 0.0, 0.0, 0.0,
-	0.0, cos(theta_x*(M_PI/180)), -sin(theta_x*(M_PI/180)), 0.0,
-	0.0, sin(theta_x*(M_PI/180)), cos(theta_x*(M_PI/180)), 0.0,
+	0.0, cos(theta_x), -sin(theta_x), 0.0,
+	0.0, sin(theta_x), cos(theta_x), 0.0,
 	0.0, 0.0, 0.0, 1.0);
-     mat4  mv_ry = mat4(cos(theta_y*(M_PI/180)), 0.0, sin(theta_y*(M_PI/180)), 0.0,
+     mat4  mv_ry = mat4(cos(theta_y), 0.0, sin(theta_y), 0.0,
 	0.0, 1.0, 0.0, 0.0,
-	-sin(theta_y*(M_PI/180)), 0.0, cos(theta_y*(M_PI/180)), 0.0,
+	-sin(theta_y), 0.0, cos(theta_y), 0.0,
 	0.0, 0.0, 0.0, 1.0);
-     mat4  mv_rz = mat4(cos(theta_z*(M_PI/180)), -sin(theta_z*(M_PI/180)), 0.0, 0.0,
-	sin(theta_z*(M_PI/180)), cos(theta_z*(M_PI/180)), 0.0, 0.0,
+     mat4  mv_rz = mat4(cos(theta_z), -sin(theta_z), 0.0, 0.0,
+	sin(theta_z), cos(theta_z), 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0,
 	0.0, 0.0, 0.0, 1.0);
 
@@ -203,9 +203,12 @@ void myMouse (int button, int state, int x, int y)
 		if (y >= 256)
 			light_position_y = light_position_y + 1;
 		
-		init();glutPostRedisplay();
-		cout<< "X: "<< x << "Y: "<< y <<endl;
+		init();
+                glutPostRedisplay();
+		//cout<< "X: "<< x << "Y: "<< y <<endl;
 	}
+        old_button = button;
+        old_state = state;
 }
 
 void myMouseMotion(int x, int y){
@@ -224,7 +227,7 @@ void myMouseMotion(int x, int y){
 	if(old_button == GLUT_MIDDLE_BUTTON && old_state == GLUT_DOWN) {
 		theta_z = (360 * distance / sqrt(widthm*widthm + heightm*heightm)) * M_PI / 180;
 	} 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f); 
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
 	glutPostRedisplay();
 }
 

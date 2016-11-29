@@ -160,15 +160,15 @@ display( void )
 	0.0, 0.0, scale, 0.0,
 	0.0, 0.0, 0.0, 1.0);
      mat4  mv_rx = mat4(1.0, 0.0, 0.0, 0.0,
-	0.0, cos(theta_x*(M_PI/180)), -sin(theta_x*(M_PI/180)), 0.0,
-	0.0, sin(theta_x*(M_PI/180)), cos(theta_x*(M_PI/180)), 0.0,
+	0.0, cos(theta_x), -sin(theta_x), 0.0,
+	0.0, sin(theta_x), cos(theta_x), 0.0,
 	0.0, 0.0, 0.0, 1.0);
-     mat4  mv_ry = mat4(cos(theta_y*(M_PI/180)), 0.0, sin(theta_y*(M_PI/180)), 0.0,
+     mat4  mv_ry = mat4(cos(theta_y), 0.0, sin(theta_y), 0.0,
 	0.0, 1.0, 0.0, 0.0,
-	-sin(theta_y*(M_PI/180)), 0.0, cos(theta_y*(M_PI/180)), 0.0,
+	-sin(theta_y), 0.0, cos(theta_y), 0.0,
 	0.0, 0.0, 0.0, 1.0);
-     mat4  mv_rz = mat4(cos(theta_z*(M_PI/180)), -sin(theta_z*(M_PI/180)), 0.0, 0.0,
-	sin(theta_z*(M_PI/180)), cos(theta_z*(M_PI/180)), 0.0, 0.0,
+     mat4  mv_rz = mat4(cos(theta_z), -sin(theta_z), 0.0, 0.0,
+	sin(theta_z), cos(theta_z), 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0,
 	0.0, 0.0, 0.0, 1.0);
 
@@ -188,19 +188,27 @@ void myMouse (int button, int state, int x, int y)
 {
     
 	if(button == GLUT_LEFT_BUTTON) {
-		dy = old_x - x;
+		mouse = 1;
 	} 
 	if(button == GLUT_RIGHT_BUTTON) {
-		dx = old_y - y;
+		mouse = 2;
 	}
 	if(button == GLUT_MIDDLE_BUTTON) {
-		dx = old_x - x;
-		dy = old_y - y;
+		if (x < 256)
+			light_position_x = light_position_x - 1;
+		if (x >= 256)
+			light_position_x = light_position_x + 1;
+		if (y < 256)
+			light_position_y = light_position_y - 1;
+		if (y >= 256)
+			light_position_y = light_position_y + 1;
+		
+		init();
+                glutPostRedisplay();
+		//cout<< "X: "<< x << "Y: "<< y <<endl;
 	}
-	old_x = x;
-	old_y = y;
-	old_button = button;
-	old_start = state;
+        old_button = button;
+        old_state = state;
 }
 
 void myMouseMotion(int x, int y){
@@ -261,13 +269,13 @@ void myKey(unsigned char key, int x, int y )
     cout<< "mouse: "<< mouse <<endl;
     cout<< "keyboard: "<< keyboard <<endl;
     
-    cout<< "l_amb_red: "<< l_amb_red << "  l_amb_blu: "<< l_amb_blu << "  l_spe_red: "<< l_amb_green <<endl;
+/*    cout<< "l_amb_red: "<< l_amb_red << "  l_amb_blu: "<< l_amb_blu << "  l_spe_red: "<< l_amb_green <<endl;
     cout<< "l_diff_red: "<< l_diff_red << "  l_diff_blu: "<< l_diff_blu << "  l_diff_green: "<< l_diff_green <<endl;
     cout<< "l_spe_red: "<< l_spe_red << "  l_spe_blu: "<< l_spe_blu << "  l_spe_green: "<< l_spe_green <<endl;
     cout<< endl;
     cout<< "m_amb_red: "<< m_amb_red << "  m_amb_blu: "<< m_amb_blu << "  m_spe_red: "<< m_amb_green <<endl;
     cout<< "m_diff_red: "<< m_diff_red << "  m_diff_blu: "<< m_diff_blu << "  m_diff_green: "<< m_diff_green <<endl;
-    cout<< "m_spe_red: "<< m_spe_red << "  m_spe_blu: "<< m_spe_blu << "  m_spe_green: "<< m_spe_green <<endl;
+    cout<< "m_spe_red: "<< m_spe_red << "  m_spe_blu: "<< m_spe_blu << "  m_spe_green: "<< m_spe_green <<endl;*/
 }
 
 
