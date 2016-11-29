@@ -11,25 +11,25 @@ uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform vec4 LightPosition;
 uniform float Shininess;
 
-uniform mat4 model_view;
-uniform mat4 projection;
+uniform mat4 ModelView;
+uniform mat4 Projection;
 
 void main() 
 {
     //Transform vertex position into eye coordinates
-    vec3 pos = (model_view * vPosition).xyz;
+    vec3 pos = (ModelView * vPosition).xyz;
     vec3 L;
 
     //compute the 4 vectors
     if(LightPosition.w != 0)//point light
-        L = normalize((model_view*LightPosition).xyz - pos);
+        L = normalize((ModelView*LightPosition).xyz - pos);
     else //distant light
-        L = normalize((model_view*LightPosition).xyz);
+        L = normalize((ModelView*LightPosition).xyz);
     vec3 E = normalize( -pos );
     vec3 H = normalize( L+E );
 
     //transform vertex normal into eye coordinates
-    vec3 N = normalize(model_view*vec4(vNormal, 0.0)).xyz;
+    vec3 N = normalize(ModelView*vec4(vNormal, 0.0)).xyz;
 
     //compute terms in the illuminatin equation
     //ambient term
@@ -47,5 +47,5 @@ void main()
     color = ambient + diffuse + specular;
     color.a = 1.0;
 
-    gl_Position = projection*model_view*vPosition;
+    gl_Position = Projection*ModelView*vPosition;
 } 

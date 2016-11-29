@@ -14,6 +14,7 @@ typedef Angel::vec4 point4;
 vector<vec4> vertices;
 vector<GLushort> elements;
 vector<vec3> normals;
+vector<vec2> textCors;
 
 GLfloat scale=1.0;
 
@@ -56,6 +57,10 @@ GLfloat  the_left = -1.0, the_right = 1.0;
 GLfloat  bottom = -1.0, top = 1.0;
 GLfloat zNear = 0.5, zFar = 3.0;
 
+//black/white checkerboard
+float pixels[] = { 0.0f, 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,   0.0f, 0.0f, 0.0f};
+
 //GLuint program;
 
 GLuint  ModelView;  // model-view matrix uniform shader variable location
@@ -77,29 +82,41 @@ init()
     GLuint vao;
     glGenVertexArrays( 1, &vao );
     glBindVertexArray( vao );
+    //texture generation
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
 
 
     // Load a model
-    load_obj("../models/teapot.obj", vertices,elements,normals);
-if ((vertices.size()==0) || (elements.size()==0)|| (normals.size()==0))
-    cout << "Failed to read the model"<<endl;
-else
-    cout<< vertices.size()<<" "<<elements.size()<<endl;
+    //load_obj("../models/teapot.obj", vertices,elements,normals);
+    load_obj_tex("../models/teapot_texCor.obj", vertices, textCors, normals);
+    //if ((vertices.size()==0) || (elements.size()==0)|| (normals.size()==0))
+    if ((vertices.size()==0) || (textCors.size()==0)|| (normals.size()==0))
+        cout << "Failed to read the model"<<endl;
+    else
+        cout<< vertices.size()<<" "<<elements.size()<<endl;
 
     // Create and initialize a buffer object
 
-	GLuint buffers[NumVertexBuffers];
+    GLuint buffers[NumVertexBuffers];
 
-	glGenBuffers( NumVertexBuffers, buffers );
+    glGenBuffers( NumVertexBuffers, buffers );
 
-	glBindBuffer( GL_ARRAY_BUFFER, buffers[ArrayBuffer]  );
-	glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3), NULL, GL_STATIC_DRAW );
+    glBindBuffer( GL_ARRAY_BUFFER, buffers[ArrayBuffer]  );
+    glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3), NULL, GL_STATIC_DRAW );
 
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, buffers[ElementBuffer] );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, elements.size()*sizeof(GLushort), &elements[0], GL_STATIC_DRAW );
+    //glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, buffers[ElementBuffer] );
+    //glBufferData( GL_ELEMENT_ARRAY_BUFFER, elements.size()*sizeof(GLushort), &elements[0], GL_STATIC_DRAW );
 
-	glBufferSubData(GL_ARRAY_BUFFER,0,vertices.size()*sizeof(vec4), &vertices[0]);
-	glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4),sizeof(vec3)*normals.size(), &normals[0] );
+
+    glBufferSubData(GL_ARRAY_BUFFER,0,vertices.size()*sizeof(vec4), &vertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4),sizeof(vec3)*normals.size(), &normals[0] );
 
    // Load shaders and use the resulting shader program
    GLuint program = InitShader( "vshader_teapot.glsl", "fshader_teapot.glsl" );

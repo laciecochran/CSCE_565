@@ -4,7 +4,10 @@
 
 in vec4 vPosition;
 in vec3 vNormal;
+in vec2 texcoord;
+
 out vec4 color;//vertex shade
+out vec2 Texcoord;
 
 //light and material properties
 uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
@@ -48,4 +51,5 @@ void main()
     color.a = 1.0;
 
     gl_Position = Projection*ModelView*vPosition;
+    Texcoord = texcoord;
 } 
