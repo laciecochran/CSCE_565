@@ -103,7 +103,7 @@ init()
         }
     }
     //create an image pattern
-    //LoadWriteImage.LoadPPMImage("../models/container.jpg", 1, image2);
+    LoadWriteImage.LoadPPMImage("../models/container.jpg", 1, image2);
 
     // Initialize texture objects
     glGenTextures( 2, textures );
