@@ -9,6 +9,7 @@
 // For each following line,
 // v introduces a vertex
 // vn introduces a normal
+// vt introduces texture coordinates
 // f introduces a face, using vertex indices, starting at 1
 //
 // loadModels() is used to load an existing model stored as an
@@ -24,3 +25,5 @@
 using namespace std;
 
 void load_obj(const char* filename,vector<vec4>& vertices, vector<GLushort>& elements, vector<vec3>& normals);
+
+void load_obj_tex(const char* filename, vector<vec4>& vertices, vector<vec2>& tex_coords,vector<vec3>& normals);

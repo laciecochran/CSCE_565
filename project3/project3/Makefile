@@ -1,4 +1,4 @@
-COMPILING = teapot.cpp InitShader.cpp loadModels.cpp
+COMPILING = example_teapot.cpp InitShader.cpp loadModels.cpp
 
 #Specifies the executable's name
 EXECUTABLE = runnable
@@ -16,7 +16,7 @@ CFLAGS = -g3 -Wall -Wno-non-template-friend -fpermissive
 INCLUDE =  -I"../include" 
 
 LIBRARY_PATH = -L"/usr/X11/lib" -L"../lib"
-LDLIBRARIES_STATIC =-Bstatic -lglut -lGLEW -lGLU
+LDLIBRARIES_STATIC =-Bstatic -lglut -lGLEW 
 LDLIBRARIES_DYNAMIC =-Bdynamic -lGL -lm 
 
 all:
