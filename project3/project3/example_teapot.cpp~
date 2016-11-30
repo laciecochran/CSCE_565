@@ -6,7 +6,7 @@
 #include "Angel.h"
 #include "loadModels.h"
 #include "math.h"
-#include "Image565.h"
+#include "LoadWriteImage.cpp"
  
 typedef Angel::vec4 color4;
 typedef Angel::vec4 point4;
@@ -78,7 +78,7 @@ GLuint textures[2];
 
 GLubyte image[TextureSize][TextureSize][3];
 //GLubyte image2[TextureSize][TextureSize][3];
-unsigned char image2[TextureSize][TextureSize][4];
+GLubyte image2[1024][1024][4];
 
 enum { ArrayBuffer, ElementBuffer, NumVertexBuffers };
 
@@ -103,7 +103,7 @@ init()
         }
     }
     //create an image pattern
-    LoadWriteImage.LoadPPMImage("../models/container.jpg", 1, image2);
+    LoadPPMImage("../models/container.ppm", 1, image2);
 
     // Initialize texture objects
     glGenTextures( 2, textures );
@@ -116,7 +116,7 @@ init()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 
     glBindTexture( GL_TEXTURE_2D, textures[1] );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, TextureSize, TextureSize, 0, GL_RGB, GL_UNSIGNED_BYTE, image2 );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_BYTE, image2 );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
