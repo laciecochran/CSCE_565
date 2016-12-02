@@ -16,6 +16,9 @@ vector<vec4> vertices;
 vector<vec2> tex_coords;
 vector<vec3> normals;
 
+//for bump mapping
+vector<vec4> tangents;
+
 GLfloat scale=1.0;
 GLfloat scale_factor = 0.05;
 const int  TextureSize  = 64;
@@ -72,13 +75,14 @@ GLuint program;
 GLuint  model_view;  // model-view matrix uniform shader variable location
 
 GLuint  projection; // projection matrix uniform shader variable location
+GLuint NormalMatrix;  //for bump mapping
 
 // Texture objects and storage for texture image
 GLuint textures[2];
 
 GLubyte image[TextureSize][TextureSize][3];
 //GLubyte image2[TextureSize][TextureSize][3];
-GLubyte image2[1024][1024][4];
+unsigned char image2[1024][1024][4];
 
 enum { ArrayBuffer, ElementBuffer, NumVertexBuffers };
 
@@ -103,7 +107,7 @@ init()
         }
     }
     //create an image pattern
-    LoadPPMImage("../models/container.ppm", 1, image2);
+    LoadPPMImage("../models/spots.ppm", 1, image2);
 
     // Initialize texture objects
     glGenTextures( 2, textures );
@@ -116,7 +120,7 @@ init()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 
     glBindTexture( GL_TEXTURE_2D, textures[1] );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, 1024, 1024, 0, GL_RGB, GL_UNSIGNED_BYTE, image2 );
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, image2 );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -138,19 +142,23 @@ if ((vertices.size()==0) || (tex_coords.size()==0)|| (normals.size()==0))
 else
     cout<< vertices.size()<<" "<<tex_coords.size()<<endl;
 
+    //create tangents and bitangents
+    //computeTangentBasis(&vertices, &tex_coords, &normals, &tangents, &bitangents);
+
     // Create and initialize a buffer object
 	GLuint buffers[NumVertexBuffers];
 	
 	glGenBuffers( NumVertexBuffers, buffers );
 
 	glBindBuffer( GL_ARRAY_BUFFER, buffers[ArrayBuffer]  );
-	glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2), NULL, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2) + tangents.size()*sizeof(vec4), NULL, GL_STATIC_DRAW );
 
 	GLintptr offset = 0;
 
 	glBufferSubData(GL_ARRAY_BUFFER,0,vertices.size()*sizeof(vec4), &vertices[0]);
 	glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4),sizeof(vec3)*normals.size(), &normals[0] );
 	glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4)+sizeof(vec3)*normals.size(), tex_coords.size()*sizeof(vec2), &tex_coords[0] );
+        glBufferSubData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2) + tangents.size()*sizeof(vec4), &tangents[0]);
 
         // Load shaders and use the resulting shader program
         program = InitShader( "vshader_teapot.glsl", "fshader_teapot.glsl" );
@@ -172,6 +180,11 @@ else
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" );
 	glEnableVertexAttribArray( vTexCoord );
 	glVertexAttribPointer( vTexCoord, 2,GL_FLOAT,GL_FALSE, 0,BUFFER_OFFSET(offset) );
+
+        offset += tex_coords.size()*sizeof(vec4);
+        GLuint vTangent = glGetAttribLocation( program, "vTangent");
+        glEnableVertexAttribArray( vTangent );
+        glVertexAttribPointer( vTangent, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(offset));
 	
 	ambient_product  = light_ambient * material_ambient;
 	diffuse_product  = light_diffuse * material_diffuse;
@@ -182,12 +195,6 @@ else
 	glUniform4fv( glGetUniformLocation(program, "SpecularProduct"),1, specular_product );
 	glUniform4fv( glGetUniformLocation(program, "LightPosition"),1, light_position );
 	glUniform1f( glGetUniformLocation(program, "Shininess"), material_shininess );
-	
-        // Set the value of the fragment shader texture sampler variable
-        //   ("tex") to the the appropriate texture unit. In this case,
-        //   zero, for GL_TEXTURE0 which was previously set by calling
-        //   glActiveTexture().
-        //glUniform1i( glGetUniformLocation(program, "tex"), 0 );
 	
 	// Retrieve transformation uniform variable locations
 	model_view = glGetUniformLocation( program, "model_view" );
@@ -226,7 +233,7 @@ display( void )
         glUniform1i( glGetUniformLocation(program, "tex1"), 0 );
         glActiveTexture( GL_TEXTURE0 );
         glBindTexture( GL_TEXTURE_2D, textures[0] );
-        glUniform1i( glGetUniformLocation(program, "tex1"), 1 );
+        glUniform1i( glGetUniformLocation(program, "tex2"), 1 );
         glActiveTexture( GL_TEXTURE1 );
         glBindTexture( GL_TEXTURE_2D, textures[1] );
     }
@@ -266,8 +273,13 @@ display( void )
         0.0, cos(theta_x), -sin(theta_x), 0.0,
         0.0, sin(theta_x), cos(theta_x), 0.0,
         0.0, 0.0, 0.0, 1);
+
+    mat4 modelView = mv*rotate_z*rotate_y*rotate_x*mv_scale*Scale(scale_factor);
     
-    glUniformMatrix4fv( model_view, 1, GL_TRUE, mv*rotate_z*rotate_y*rotate_x*mv_scale*Scale(scale_factor));
+    glUniformMatrix4fv( model_view, 1, GL_TRUE, modelView);
+
+    mat4 normalMatrix = transpose(modelView);
+    glUniformMatrix4fv( NormalMatrix, 1, GL_TRUE, normalMatrix );
        
     mat4  p = Perspective( 90, 1, 0.5, 100 );
     glUniformMatrix4fv( projection, 1, GL_TRUE, p );
