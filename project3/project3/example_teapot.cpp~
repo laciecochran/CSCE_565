@@ -18,6 +18,7 @@ vector<vec3> normals;
 
 //for bump mapping
 vector<vec4> tangents;
+vector<vec4> bitangents;
 
 GLfloat scale=1.0;
 GLfloat scale_factor = 0.05;
@@ -78,7 +79,7 @@ GLuint  projection; // projection matrix uniform shader variable location
 GLuint NormalMatrix;  //for bump mapping
 
 // Texture objects and storage for texture image
-GLuint textures[2];
+GLuint textures[3];
 
 GLubyte image[TextureSize][TextureSize][3];
 //GLubyte image2[TextureSize][TextureSize][3];
@@ -125,10 +126,18 @@ init()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-
-    //glActiveTexture( GL_TEXTURE0 );
-    //glBindTexture( GL_TEXTURE_2D, textures[0] );
     
+    //create cube map
+    glEnable(GL_TEXTURE_CUBE_MAP);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textures[3]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,0,GL_RGB,64,64,0,GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
     // Create a vertex array object
     GLuint vao;
     glGenVertexArrays( 1, &vao );
@@ -143,7 +152,9 @@ else
     cout<< vertices.size()<<" "<<tex_coords.size()<<endl;
 
     //create tangents and bitangents
-    //computeTangentBasis(&vertices, &tex_coords, &normals, &tangents, &bitangents);
+    //computeTangentBasis(vertices, tex_coords, normals, tangents, bitangents);
+    //if ((tangents.size()==0))
+        //cout << "Failed to read the model"<<endl;
 
     // Create and initialize a buffer object
 	GLuint buffers[NumVertexBuffers];
@@ -151,14 +162,16 @@ else
 	glGenBuffers( NumVertexBuffers, buffers );
 
 	glBindBuffer( GL_ARRAY_BUFFER, buffers[ArrayBuffer]  );
-	glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2) + tangents.size()*sizeof(vec4), NULL, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2), NULL, GL_STATIC_DRAW );
 
 	GLintptr offset = 0;
 
 	glBufferSubData(GL_ARRAY_BUFFER,0,vertices.size()*sizeof(vec4), &vertices[0]);
 	glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4),sizeof(vec3)*normals.size(), &normals[0] );
 	glBufferSubData(GL_ARRAY_BUFFER,vertices.size()*sizeof(vec4)+sizeof(vec3)*normals.size(), tex_coords.size()*sizeof(vec2), &tex_coords[0] );
-        glBufferSubData(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2) + tangents.size()*sizeof(vec4), &tangents[0]);
+
+        //data for tangents
+        //(GL_ARRAY_BUFFER, vertices.size()*sizeof(vec4) + normals.size()*sizeof(vec3) + tex_coords.size()*sizeof(vec2), tangents.size()*sizeof(vec4), &tangents[0]);
 
         // Load shaders and use the resulting shader program
         program = InitShader( "vshader_teapot.glsl", "fshader_teapot.glsl" );
@@ -180,11 +193,6 @@ else
 	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" );
 	glEnableVertexAttribArray( vTexCoord );
 	glVertexAttribPointer( vTexCoord, 2,GL_FLOAT,GL_FALSE, 0,BUFFER_OFFSET(offset) );
-
-        offset += tex_coords.size()*sizeof(vec4);
-        GLuint vTangent = glGetAttribLocation( program, "vTangent");
-        glEnableVertexAttribArray( vTangent );
-        glVertexAttribPointer( vTangent, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(offset));
 	
 	ambient_product  = light_ambient * material_ambient;
 	diffuse_product  = light_diffuse * material_diffuse;
@@ -223,7 +231,7 @@ display( void )
         glUniform1i( glGetUniformLocation(program, "tex2"), 1 );
 
         glActiveTexture( GL_TEXTURE0 );
-        glBindTexture( GL_TEXTURE_2D, textures[text_img] );
+        glBindTexture( GL_TEXTURE_CUBE_MAP, textures[3] );
         glActiveTexture( GL_TEXTURE1 );
         glBindTexture( GL_TEXTURE_2D, textures[text_img] );
     }
@@ -232,9 +240,12 @@ display( void )
     {
         glUniform1i( glGetUniformLocation(program, "tex1"), 0 );
         glActiveTexture( GL_TEXTURE0 );
-        glBindTexture( GL_TEXTURE_2D, textures[0] );
+        glBindTexture( GL_TEXTURE_CUBE_MAP, textures[3] );
         glUniform1i( glGetUniformLocation(program, "tex2"), 1 );
         glActiveTexture( GL_TEXTURE1 );
+        glBindTexture( GL_TEXTURE_2D, textures[0] );
+        glUniform1i( glGetUniformLocation(program, "tex3"), 2 );
+        glActiveTexture( GL_TEXTURE2 );
         glBindTexture( GL_TEXTURE_2D, textures[1] );
     }
     

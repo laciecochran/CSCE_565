@@ -3,11 +3,10 @@
 in  vec4 vPosition;
 in  vec3 vNormal;
 in  vec2 vTexCoord;
-in vec4 vTangent;
+
 out vec4 color;
 out vec2 texCoord;
-out vec3 light;
-out vec3 view; 
+out vec3 R; //reflection
 
 uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform vec4 LightPosition;
@@ -15,8 +14,6 @@ uniform float Shininess;
 
 uniform mat4 model_view;
 uniform mat4 projection;
-uniform mat4 NormalMatrix;
-
 
 void main() 
 {
@@ -32,20 +29,7 @@ void main()
 	vec3 H = normalize( L + E );
 	// Transform vertex normal into eye coordinates
 	vec3 N = normalize( model_view*vec4(vNormal, 0.0) ).xyz;
-        vec3 T = normalize( (NormalMatrix*vTangent).xyz); //tangent
-        vec3 B = cross(N, T); //bitangent
 
-        //light
-        light.x = dot(T, L-pos);
-        light.y = dot(B, L-pos);
-        light.z = dot(N, L-pos);
-        light = normalize(light);
-        //view
-        view.x = dot(T, -pos);
-        view.y = dot(B, -pos);
-        view.z = dot(N, -pos);
-        view = normalize(view);
-	
 	// Compute terms in the illumination equation
 	// Ambient term
 	vec4 ambient = AmbientProduct;
@@ -62,4 +46,5 @@ void main()
 	color.a = 1.0;
 	texCoord = vTexCoord;
 	gl_Position = projection * model_view * vPosition;
+        R = reflect(-pos.xyz, N);
 } 
